@@ -311,6 +311,30 @@ app.post("/start-bot", async (req, res) => {
     }
 });
 
+// Add this endpoint to debug the current page
+app.get("/debug-page/:sessionId", async (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
+    
+    if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+    }
+    
+    try {
+        const pageContent = await session.page.content();
+        const pageUrl = await session.page.url();
+        const pageText = await session.page.evaluate(() => document.body.innerText);
+        
+        res.json({
+            url: pageUrl,
+            content: pageContent.substring(0, 2000),
+            text: pageText.substring(0, 1000)
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.listen(4000, () => {
     console.log("Meet Bot Service running on port 4000");
     console.log("Available endpoints:");
